@@ -1,4 +1,3 @@
-use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::env;
 use std::fs;
@@ -35,7 +34,7 @@ fn get_pairs_from_file(file_path: &str) -> Vec<(String, String)> {
 
     let mut seen_pairs: HashSet<(&String, &String)> = HashSet::new();
     let mut count: HashMap<&String, u32> = HashMap::new();
-    let mut pairs: Vec<(String, String)> = Vec::with_capacity(contents.len() - 1);
+    let mut pairs: Vec<(String, String)> = Vec::with_capacity(contents.len());
 
     for i in 0..=contents.len() - 2 {
         let pair = (&contents[i], &contents[i + 1]);
@@ -65,36 +64,25 @@ fn main() {
     }
     let file_path = &args[1];
     let pairs = get_pairs_from_file(&file_path);
+    let deck_name: String = "".to_string();
+    let model_name: String = "".to_string();
 
+    let mut notes: Vec<String> = Vec::new();
     for (card_front, card_back) in pairs {
-        let body = format!(
-            r#"
-		{{
-  	  	  "action": "addNotes",
-  	  	  "version": 6,
-  	  	  "params": {{
-    		"notes": [
-      	  	  {{
-        		"deckName": "Test",
-        		"modelName": "Song format",
+        notes.push(format!(
+            r#"{{
+        		"deckName": "{deck_name}",
+        		"modelName": "{model_name}",
         		"fields": {{
-          	  	  "This line": "{card_front}",
-          	  	  "Next line reading": "{card_back}"
+          	  	  "T"this line": "{card_front}",
+          	  	  "T"this line reading": "{card_front}",
+          	  	  "N"next line": "{card_back}"
+          	  	  "N"next line reading": "{card_back}"
         		}}
-      	  	  }}
-    		]
-  	  	  }}
-		}}"#,
+      	  	}}"#,
             card_front = card_front,
             card_back = card_back
-        );
-
-        // let client = reqwest::blocking::Client::new();
-        // let res = client
-        //     .post(URL)
-        //     .body(body)
-        //     .send()
-        //     .unwrap();
+        ));
         println!("{}, {}", card_front, card_back);
     }
 }
