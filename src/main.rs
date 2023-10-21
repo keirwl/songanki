@@ -1,27 +1,21 @@
+use clap::Parser;
+use reqwest::blocking::Client;
 use std::collections::{HashMap, HashSet};
-use std::env;
+use std::error::Error;
 use std::fs;
-use std::process;
 
 const URL: &str = "http://localhost:8765/";
 const MARU_ONE: u32 = 0x2460;
-const ADD_NOTE: &str = r#"
-{
-  "action": "addNotes",
-  "version": 6,
-  "params": {
-    "notes": [
-      {
-        "deckName": "Test",
-        "modelName": "Song format",
-        "fields": {
-          "This line": "card_front",
-          "Next line reading": "card_back"
-        }
-      }
-    ]
-  }
-}"#;
+
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    #[arg(short, long)]
+    deck_name: String,
+    #[arg(short, long)]
+    model_name: String,
+    file_path: String,
+}
 
 fn get_pairs_from_file(file_path: &str) -> Vec<(String, String)> {
     println!("Reading file {}", file_path);
@@ -56,16 +50,11 @@ fn get_pairs_from_file(file_path: &str) -> Vec<(String, String)> {
     pairs
 }
 
-fn main() {
-    let args: Vec<String> = env::args().collect();
-    if args.len() != 2 {
-        println!("Takes exactly one file path argument");
-        process::exit(1);
-    }
-    let file_path = &args[1];
-    let pairs = get_pairs_from_file(&file_path);
-    let deck_name: String = "".to_string();
-    let model_name: String = "".to_string();
+fn main() -> Result<(), Box<dyn Error>> {
+    let args = Args::parse();
+    let pairs = get_pairs_from_file(&args.file_path);
+    let deck_name = args.deck_name;
+    let model_name = args.model_name;
 
     let mut notes: Vec<String> = Vec::new();
     for (card_front, card_back) in pairs {
@@ -74,15 +63,30 @@ fn main() {
         		"deckName": "{deck_name}",
         		"modelName": "{model_name}",
         		"fields": {{
-          	  	  "T"this line": "{card_front}",
-          	  	  "T"this line reading": "{card_front}",
-          	  	  "N"next line": "{card_back}"
-          	  	  "N"next line reading": "{card_back}"
+                    "This line": "{card_front}",
+                    "This line reading": "{card_front}",
+                    "Next line": "{card_back}",
+                    "Next line reading": "{card_back}"
         		}}
-      	  	}}"#,
-            card_front = card_front,
-            card_back = card_back
+      	  	}}"#
         ));
-        println!("{}, {}", card_front, card_back);
     }
+
+    let payload = format!(
+        r#"
+    {{
+      "action": "addNotes",
+      "version": 6,
+      "params": {{
+        "notes": [{notes_list}]
+      }}
+    }}"#,
+        notes_list = notes.join(",")
+    );
+
+    let client = Client::new();
+    let resp = client.post(URL).body(payload).send()?;
+    println!("{}", resp.status());
+    println!("{}", resp.text()?);
+    Ok(())
 }
