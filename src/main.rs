@@ -57,18 +57,25 @@ fn main() -> Result<(), Box<dyn Error>> {
     let model_name = args.model_name;
 
     let mut notes: Vec<String> = Vec::new();
+    let mut first = true;
+    let mut tag: String = "".to_string();
     for (card_front, card_back) in pairs {
+        if first {
+            tag = card_front.clone();
+            first = false;
+        }
         notes.push(format!(
             r#"{{
-        		"deckName": "{deck_name}",
-        		"modelName": "{model_name}",
-        		"fields": {{
+                "deckName": "{deck_name}",
+                "modelName": "{model_name}",
+                "tags": ["{tag}"],
+                "fields": {{
                     "This line": "{card_front}",
                     "This line reading": "{card_front}",
                     "Next line": "{card_back}",
                     "Next line reading": "{card_back}"
-        		}}
-      	  	}}"#
+                }}
+            }}"#
         ));
     }
 
