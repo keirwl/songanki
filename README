@@ -1,0 +1,8 @@
+This program was written to solve a specific problem:
+I want to use Anki to memorise Japanese song lyrics and become a karaoke god.
+
+Anki cards will have one lyric line on the front, the next line on the back.
+A song may have repeated lyrics, these are deduplicated and removed.
+A song may also have cases where the front lyric is the same with a different back lyric, e.g., going from the last line of the chorus to the 2nd, 3rd etc verse. These cases are also accounted for and disambiguated with a number.
+
+Next step: tokenising and adding furigana with mecab.
