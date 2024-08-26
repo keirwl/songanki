@@ -10,6 +10,16 @@ pub const KATA_START: char = '\u{30A1}';
 pub const KATA_END: char = '\u{30FF}';
 pub const KATA_SHIFTABLE_START: char = '\u{30A1}';
 pub const KATA_SHIFTABLE_END: char = '\u{30F6}';
+pub const KANJI_START: char = '\u{4E00}';
+pub const KANJI_END: char = '\u{9FAF}';
+
+pub fn is_kana(c: char) -> bool {
+    (HIRA_START <= c && c <= HIRA_END) || (KATA_START <= c && c <= KATA_END)
+}
+
+pub fn is_kanji(c: char) -> bool {
+    KANJI_START <= c && c <= KANJI_END
+}
 
 pub fn kata_to_hira(c: char) -> char {
     if KATA_SHIFTABLE_START <= c && c <= KATA_SHIFTABLE_END {
@@ -52,7 +62,12 @@ pub fn get_dict() -> Dict {
     dict
 }
 
-// pub fn annotate_line(line: &str, dict: &Dict, cache: &mut Cache) -> str {
-//     let mut tokens = Vec::new();
-//     dict.tokenize_with_cache(cache, line, &mut tokens).unwrap();
-// }
+pub fn annotate_line(line: &str, dict: &Dict, cache: &mut Cache) -> str {
+    let mut tokens = Vec::new();
+    dict.tokenize_with_cache(cache, line, &mut tokens).unwrap();
+
+    for token in tokens {
+        let fields = token.get_feature(dict).split(",").collect::<Vec<_>>();
+        let orth = fields[8];
+    }
+}
